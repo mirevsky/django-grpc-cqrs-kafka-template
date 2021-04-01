@@ -1,0 +1,19 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+steps:
+- name: component_a_query
+  image: python3.8
+  commands:
+  - pip install -r requirements.txt
+  - pytest
+
+- name: component_a_command
+  image: python3.8
+  commands:
+  - pip install -r requirements.txt
+  - pytest
+
+...

@@ -1,0 +1,121 @@
+version: "3.3"  # optional since v1.27.0
+
+services:
+  redis:
+    image: library/redis:latest
+    container_name: redis
+    ports:
+      - 6382:6379
+    networks:
+      - csebot-network
+    restart: always
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - 2181:2181
+    networks:
+      - csebot-network
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    restart: always
+
+  kafka:
+    container_name: kafka
+    image: wurstmeister/kafka
+    ports:
+      - 9092:9092
+    expose:
+      - "29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:29092,OUTSIDE://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    depends_on:
+      - zookeeper
+    restart: always
+    networks:
+      - csebot-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  mysql:
+    container_name: mysql
+    image: library/mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - 3306:3306
+    env_file:
+      - ./app.env
+
+    networks:
+      - csebot-network
+
+  component_a_query:
+    container_name: component_a_query
+    build:
+      context: app/
+      dockerfile: ./component_a/_init/query/Dockerfile
+    env_file:
+      - ./app.env
+    restart: always
+    ports:
+      - 9000:9000
+    networks:
+      - csebot-network
+    depends_on:
+      - mysql
+      - kafka
+    volumes:
+      - ./app/component_a:/component_a
+      - ./app/shared:/shared
+
+  component_a_command:
+    container_name: component_a_command
+    build:
+      context: app/
+      dockerfile: ./component_a/_init/command/Dockerfile
+      args:
+        bootstrap_servers: kafka:29092
+        service_topic: topic_component_a_command
+    env_file:
+      - ./app.env
+    restart: always
+    ports:
+      - 5000:5000
+    networks:
+      - csebot-network
+    depends_on:
+      - mysql
+      - kafka
+      - component_a_query
+    volumes:
+      - ./app/component_a:/component_a
+      - ./app/shared:/shared
+
+  integration_tests:
+    container_name: integration_tests
+    build:
+      context: app/
+      dockerfile: ./integration_tests/Dockerfile
+    networks:
+      - csebot-network
+    depends_on:
+      - mysql
+      - kafka
+      - component_a_query
+      - component_a_command
+    volumes:
+      - ./app/component_a:/component_a
+      - ./app/shared:/shared
+
+networks:
+  csebot-network:

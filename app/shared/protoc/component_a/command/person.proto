@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package component_a.command;
+
+import "google/protobuf/empty.proto";
+
+import "component_a/common/person_message.proto";
+
+service PersonController {
+  rpc Create(component_a.common.Person) returns (component_a.common.Person) {}
+  rpc Update(component_a.common.Person) returns (component_a.common.Person) {}
+  rpc Destroy(component_a.common.Person) returns (google.protobuf.Empty) {}
+}
