@@ -9,6 +9,8 @@ def kafka_handlers():
                                             service=PersonCommandService,
                                             response_topic='topic_component_a_command_response')
 
+
 def delegator_handlers():
     command_handlers.add_delegator_service(key='Response:PersonController.Create:Person',
-                                           delegate_topics=['topic_component_b_command_response', 'topic_component_c_command_response'])
+                                           delegate_topics=['topic_component_b_command_response',
+                                                            'topic_component_c_command_response'])
