@@ -17,12 +17,54 @@ class ControllerServiceRequest:
         self.response_topic = response_topic
 
 
+class DelegatorServiceRequest:
+    def __init__(self, pb2=None, grpc_pb2=None, response_topics=[]):
+        self.pb2 = pb2
+        self.grpc_pb2 = grpc_pb2
+        self.response_topics = response_topics
+
+
 controller_service = []
+delegator_service = {}
+
+
+def add_delegator_service(key=None, delegate_topics=[]):
+    r = re.match('^Response:([A-Za-z]+).([A-Za-z]+):([A-Za-z]+)$', key)
+    if not r:
+        raise Exception(f'Delegator key format mismatch!')
+
+    delegator_service[key] = delegate_topics
 
 
 def add_controller_service(service=None, pb2=None, grpc_pb2=None, response_topic=None):
+    response_topic = os.environ.get('SERVICE_TOPIC') if response_topic is None else response_topic
     controller_service.append(
         ControllerServiceRequest(service=service, grpc_pb2=grpc_pb2, pb2=pb2, response_topic=response_topic))
+
+
+def delegator_request(message=bytes):
+    logging.info("############ DelegatorHandler process_request ##########")
+    key = message.key.decode()
+    r = re.match('^Response:([A-Za-z]+).([A-Za-z]+):([A-Za-z]+)$', key)
+
+    if not r:
+        return
+
+    if key not in delegator_service.keys():
+        return
+
+    request_controller = r.group(1)
+    request_action = r.group(2)
+    request_message_type = r.group(3)
+
+    delegate_topics = delegator_service[key]
+    for topic in delegate_topics:
+        producer = KafkaProducer(bootstrap_servers=os.environ.get('BOOTSTRAP_SERVERS'))
+        producer.send(topic=topic,
+                      key=bytes(
+                          f'{request_controller}.{request_action}:{request_message_type}',
+                          'utf-8'),
+                      value=message.value)
 
 
 def process_request(message=bytes):
@@ -31,7 +73,6 @@ def process_request(message=bytes):
     r = re.match('^([A-Za-z]+).([A-Za-z]+):([A-Za-z]+)$', message.key.decode())
 
     if not r:
-        logging.error(f'Error: Message Format Mismatch! {message.key.decode()}')
         return
 
     request_controller = r.group(1)
@@ -71,8 +112,9 @@ def process_request(message=bytes):
 
                     producer = KafkaProducer(bootstrap_servers=os.environ.get('BOOTSTRAP_SERVERS'))
                     producer.send(topic=controller_service_request.response_topic,
-                                  key=bytes(f'{request_controller}.Response:{service_method.output_type.name}',
-                                            'utf-8'),
+                                  key=bytes(
+                                      f'Response:{request_controller}.{request_action}:{service_method.output_type.name}',
+                                      'utf-8'),
                                   value=response.SerializeToString())
                     logging.info("process_request complete!")
 
