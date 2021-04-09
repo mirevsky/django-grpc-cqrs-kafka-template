@@ -55,10 +55,12 @@ services:
       - 3306:3306
     env_file:
       - ./app.env
-
+    volumes:
+      - ./sql-scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - csebot-network
 
+  # ---- component_a ---- #
   component_a_query:
     container_name: component_a_query
     build:
@@ -101,6 +103,49 @@ services:
       - ./app/component_a:/component_a
       - ./app/shared:/shared
 
+  # ---- component_b ---- #
+  component_b_query:
+    container_name: component_b_query
+    build:
+      context: app/
+      dockerfile: ./component_b/_init/query/Dockerfile
+    env_file:
+      - ./app.env
+    restart: always
+    ports:
+      - 9010:9010
+    networks:
+      - csebot-network
+    depends_on:
+      - mysql
+      - kafka
+    volumes:
+      - ./app/component_b:/component_b
+      - ./app/shared:/shared
+
+    component_b_command:
+      container_name: component_b_command
+      build:
+        context: app/
+        dockerfile: ./component_b/_init/command/Dockerfile
+        args:
+          bootstrap_servers: kafka:29092
+          service_topic: topic_component_a_command
+      env_file:
+        - ./app.env
+      restart: always
+      ports:
+        - 5010:5010
+      networks:
+        - csebot-network
+      depends_on:
+        - mysql
+        - kafka
+        - component_b_query
+      volumes:
+        - ./app/component_b:/component_b
+        - ./app/shared:/shared
+
   integration_tests:
     container_name: integration_tests
     build:
@@ -113,8 +158,11 @@ services:
       - kafka
       - component_a_query
       - component_a_command
+      - component_b_query
+      - component_b_command
     volumes:
       - ./app/component_a:/component_a
+      - ./app/component_b:/component_b
       - ./app/shared:/shared
 
 networks:

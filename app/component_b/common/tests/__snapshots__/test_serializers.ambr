@@ -1,0 +1,17 @@
+# name: TestPersonProtoSerializer.test_person_proto_serializer_query
+  <class 'ReturnList'> [
+    <class 'OrderedDict'> {
+      'id': 1,
+      'page_number': 1,
+      'query': 'Test product',
+      'result_per_page': 1,
+    },
+  ]
+---
+# name: TestPersonProtoSerializer.test_person_proto_serializer_validate
+  <class 'ReturnDict'> {
+    'page_number': 1,
+    'query': 'Test serializer validation',
+    'result_per_page': 1,
+  }
+---

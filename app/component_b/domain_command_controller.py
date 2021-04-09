@@ -1,0 +1,20 @@
+import os
+import shared.abstraction.command_controller as command_controller
+import shared.abstraction.command_handlers as command_handlers
+
+from component_b.command.handlers import kafka_handlers, delegator_handlers
+
+
+class DomainCommandController(command_controller.CommandController):
+
+    def process_command(self, message):
+        kafka_handlers()
+        delegator_handlers()
+        command_handlers.process_request(message=message)
+        command_handlers.delegator_request(message=message)
+
+
+if __name__ == '__main__':
+    controller = DomainCommandController(topic=os.environ.get('SERVICE_TOPIC'),
+                                         bootstrap_servers=os.environ.get('BOOTSTRAP_SERVERS'))
+    controller.run()

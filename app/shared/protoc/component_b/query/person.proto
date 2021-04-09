@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package component_b.query;
+
+import "component_b/common/person_message.proto";
+
+service PersonController
+{
+  rpc List(PersonListRequest) returns (stream component_b.common.Person) {}
+  rpc Retrieve(PersonRetrieveRequest) returns (component_b.common.Person) {}
+}
+
+message PersonListRequest {
+}
+
+message PersonRetrieveRequest {
+  int32 id = 1;
+}

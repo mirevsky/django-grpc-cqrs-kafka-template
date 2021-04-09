@@ -48,6 +48,7 @@ while [ "$1" != "" ]; do
       find $BASEDIR/app/shared/library/. -type d -exec touch {}/__init__.py \;
 
       sed -i -E 's/from component_a/from shared.library.component_a/g' $(find $BASEDIR/app/shared/library/ -name "*.py")
+      sed -i -E 's/from component_b/from shared.library.component_b/g' $(find $BASEDIR/app/shared/library/ -name "*.py")
 
       exit
       ;;
@@ -91,6 +92,7 @@ while [ "$1" != "" ]; do
       find $BASEDIR/app/shared/library/. -type d -exec touch {}/__init__.py \;
 
       sed -i -E 's/from component_a/from shared.library.component_a/g' $(find $BASEDIR/app/shared/library/ -name "*.py")
+      sed -i -E 's/from component_b/from shared.library.component_b/g' $(find $BASEDIR/app/shared/library/ -name "*.py")
 
       exit
       ;;

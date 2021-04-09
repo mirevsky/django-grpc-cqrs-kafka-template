@@ -36,9 +36,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_grpc_framework',
-    'component_a.command',
-    'component_a.common',
-    'component_a.query',
+    'component_b.command',
+    'component_b.common',
+    'component_b.query',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +78,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('MYSQL_DATABASE'),
         'USER': os.environ.get('MYSQL_USER'),
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD')+'_component_a',
+        'PASSWORD': os.environ.get('MYSQL_PASSWORD')+'_component_b',
         'HOST': 'mysql',
         'PORT': '3306',  # default is 5432
     }
