@@ -8,4 +8,4 @@ COPY ./integration_tests /integration_tests
 
 RUN pip install -r /requirements.txt
 
-CMD pytest /component_a -v && pytest /integration_tests -v
+CMD pytest /component_a -v && pytest /component_b -v && pytest /integration_tests -v
