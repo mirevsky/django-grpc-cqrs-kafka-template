@@ -75,12 +75,24 @@ WSGI_APPLICATION = 'base.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQL_DATABASE'),
-        'USER': os.environ.get('MYSQL_USER'),
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD')+'_component_a',
-        'HOST': 'mysql',
-        'PORT': '3306',  # default is 5432
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DATABASE') + '_' + os.environ.get('NAMESPACE'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': 'postgres', # set in docker-compose.yml
+        'PORT': 5432 # default postgres port
+    }
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://" + os.environ.get('REDIS_HOST') + ":" + os.environ.get(
+            'REDIS_PORT') + "/" + os.environ.get('REDIS_DB'),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": os.environ.get('NAMESPACE')
     }
 }
 

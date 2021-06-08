@@ -13,7 +13,7 @@ BASEDIR=$(dirname $0)
 
 while [ "$1" != "" ]; do
 
-  dockerize -wait tcp://mysql:3306 -timeout 1m -wait-retry-interval 10s
+  dockerize -wait tcp://postgres:5432 -timeout 1m -wait-retry-interval 10s
 
   case $1 in
 
