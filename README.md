@@ -1,5 +1,5 @@
 # Emerald+ Micro-service Template
-## Django GRPS Framework, Kafka, PostgreSQL, Redis using CQRS Architecture
+## Django GRPC Framework, Kafka, PostgreSQL, Redis using CQRS Architecture
 
 ### Requirements
 
